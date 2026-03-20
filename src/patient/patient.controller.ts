@@ -1,34 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Delete, Param } from '@nestjs/common';
 import { PatientService } from './patient.service';
-import { CreatePatientDto } from './dto/create-patient.dto';
-import { UpdatePatientDto } from './dto/update-patient.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('patient')
+@UseGuards(JwtAuthGuard) // ป้องกันทั้ง Controller: ต้อง Login เท่านั้นถึงจะเข้าถึงได้
 export class PatientController {
-  constructor(private readonly patientService: PatientService) {}
+  constructor(private readonly contentsService: PatientService) {}
 
   @Post()
-  create(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientService.create(createPatientDto);
+  async create(@Request() req, @Body() createDto: any) {
+    // req.user.userId มาจาก JwtStrategy.validate()
+    return this.contentsService.create(createDto, req.user.userId);
   }
 
   @Get()
-  findAll() {
-    return this.patientService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.patientService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
-    return this.patientService.update(+id, updatePatientDto);
+  async getMyContents(@Request() req) {
+    // ดึงเฉพาะข้อมูลที่ "แอ็คเค้า นั้นๆ มี"
+    return this.contentsService.findAllByUserId(req.user.userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.patientService.remove(+id);
+  async deleteContent(@Param('id') id: string, @Request() req) {
+    return this.contentsService.remove(id, req.user.userId);
   }
 }
