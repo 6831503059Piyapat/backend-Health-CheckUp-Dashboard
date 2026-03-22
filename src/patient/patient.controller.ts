@@ -3,7 +3,7 @@ import { PatientService } from './patient.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('patient')
-@UseGuards(JwtAuthGuard) // ป้องกันทั้ง Controller: ต้อง Login เท่านั้นถึงจะเข้าถึงได้
+@UseGuards(JwtAuthGuard) 
 export class PatientController {
   constructor(private readonly contentsService: PatientService) {}
 
@@ -13,7 +13,7 @@ export class PatientController {
     return this.contentsService.create(createDto, req.user.userId);
   }
 
-  @Get()
+  @Get('me')
   async getMyContents(@Request() req) {
     // ดึงเฉพาะข้อมูลที่ "แอ็คเค้า นั้นๆ มี"
     return this.contentsService.findAllByUserId(req.user.userId);

@@ -18,8 +18,7 @@ export class AuthController {
   async register(@Body() registerDto:any){
     const user = await this.authService.regis(registerDto);
     return{
-      message:"Register Success"
-    , email:user.email
+    email:user.email
     }
   }
 }

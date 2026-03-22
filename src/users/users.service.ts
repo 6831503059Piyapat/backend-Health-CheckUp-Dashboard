@@ -46,4 +46,14 @@ export class UsersService {
   async findOneByName(name:string):Promise<User|null>{
     return this.userModel.findOne({name}).exec();
   }
+  async saveWithUser(data: any, userId: string) {
+    
+    const result = await this.userModel.findByIdAndUpdate(
+      userId,
+      {$push :data},
+      {returnDocument:'after'}
+    );
+    console.log(result)
+    return result;
+}
 }
