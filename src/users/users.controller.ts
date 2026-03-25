@@ -17,14 +17,13 @@ export class UsersController {
   @Get('me')
   async getMe(@Request() req) {
     
-    return this.usersService.findOneByEmail(req.user.email);
+    return this.usersService.findById(req.user.userId);
   }
   @UseGuards(JwtAuthGuard) 
   @Post('create-post')
 async createPost(@Body() body: any, @Request() req) {
   const userId = req.user.userId; 
-  console.log('User ID from Token:', req.user?.userId); // 1. ต้องมี ID
-  console.log('Data from Frontend:', body); // 2. ต้องมีข้อมูลที่พิมพ์มา
+
   return this.usersService.saveWithUser(body, userId);
 }
 

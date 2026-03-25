@@ -40,9 +40,14 @@ export class UsersService {
 
   // for pull Profile  (not send password back)
   async findById(id: string): Promise<User | null> {
+   
     return this.userModel.findById(id).select('-password').exec();
   }
-
+ async findByIdGraph(id: string): Promise<User | null> {
+    const data = this.userModel.findById(id).select('-password').exec();
+    console.log(data);
+    return data;
+  }
   async findOneByName(name:string):Promise<User|null>{
     return this.userModel.findOne({name}).exec();
   }

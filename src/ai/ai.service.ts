@@ -13,16 +13,13 @@ export class AiService implements OnModuleInit {
   onModuleInit() {
    const apiKey = this.configService.get<string>('GEMINI_API_KEY')!; 
 this.genAI = new GoogleGenerativeAI(apiKey);
-    // เลือกโมเดลที่ต้องการ เช่น gemini-1.5-flash หรือ gemini-1.5-pro
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 async handleFileUpload(file: Express.Multer.File, prompt: string): Promise<string> {
   try {
-    // ตรวจสอบว่าเป็นไฟล์รูปภาพหรือไม่
     const isImage = file.mimetype.startsWith('image/');
 
     if (isImage) {
-      // ถ้าเป็นรูปภาพ ต้องส่งแบบ Multi-part (Prompt + Image Data)
       const imagePart = {
         inlineData: {
           data: file.buffer.toString('base64'),
@@ -34,7 +31,6 @@ async handleFileUpload(file: Express.Multer.File, prompt: string): Promise<strin
       const response = await result.response;
       return this.cleanResponse(response.text());
     } else {
-      // ถ้าเป็นไฟล์ text ปกติ (csv, txt, etc.) ใช้วิธีเดิมได้
       const fileContent = file.buffer.toString('utf-8');
       const combinedPrompt = `${prompt}\n\nFile Content:\n${fileContent}`;
       return await this.generateText(combinedPrompt);
@@ -45,7 +41,6 @@ async handleFileUpload(file: Express.Multer.File, prompt: string): Promise<strin
   }
 }
 
-// แยก logic การ clean code blocks ออกมาเพื่อให้ใช้ซ้ำได้
 private cleanResponse(text: string): string {
   if (text.includes('```')) {
     return text.replace(/```json|```/g, '').trim();
@@ -68,5 +63,14 @@ private cleanResponse(text: string): string {
     console.error('Gemini Error:', error);
     throw new Error('Failed to generate content from Gemini');
   }
+   
+}
+async generateSuggest(prompt: string, ObjData: any): Promise<any> {
+  const dataString = JSON.stringify(ObjData, null, 2);
+
+  const result = await this.model.generateContent([prompt, dataString]);
+
+  const response = await result.response;
+  return this.cleanResponse(response.text());
 }
 }
