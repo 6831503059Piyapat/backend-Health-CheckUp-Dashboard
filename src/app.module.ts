@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { MailModule } from './mail/mail.module';
 @Module({
   imports: [PatientModule, AiModule,ConfigModule.forRoot({ isGlobal: true,envFilePath: '.env' }),
     MongooseModule.forRootAsync({
@@ -14,7 +15,7 @@ import { UsersModule } from './users/users.module';
     useFactory: async (config: ConfigService)=>({
       uri:config.get<string>('MONGODB_URL'),
     }),
-  }),PatientModule, AuthModule, UsersModule,
+  }),PatientModule, AuthModule, UsersModule, MailModule,
 ],
   controllers: [AppController],
   providers: [AppService],
