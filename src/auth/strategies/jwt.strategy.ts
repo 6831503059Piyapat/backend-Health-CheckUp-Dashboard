@@ -8,12 +8,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'MY_SECRET_KEY_123', // ในโปรเจกต์จริงควรใช้ ConfigService
+      secretOrKey: 'MY_SECRET_KEY_123', 
     });
   }
 
   async validate(payload: any) {
-    // ข้อมูลที่ return ตรงนี้จะไปโผล่ใน req.user ของ Controller
     return { userId: payload.sub, email: payload.email ,name:payload.name  };
   }
 }

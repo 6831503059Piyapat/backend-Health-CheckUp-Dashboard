@@ -14,6 +14,17 @@ export class AuthController {
     return this.authService.login(user);
   }
   
+  @Post('check-register')
+  async checkRegister(@Body() checkDto: any) {
+    const user = await this.authService.validateUser(checkDto.email, checkDto.password);
+    if (!user) {
+      return { canRegister: true };
+    }
+ if(user){
+    throw new UnauthorizedException('User already exists');
+  }
+  }
+
   @Post('register')
   async register(@Body() registerDto:any){
     const user = await this.authService.regis(registerDto);
