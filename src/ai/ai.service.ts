@@ -85,7 +85,7 @@ export class AiService implements OnModuleInit {
         dateupload: new Date().toISOString().split('T')[0],
       };
 
-      await this.usersService.saveWithUser(record, userId);
+      // await this.usersService.saveWithUser(record, userId);
       return record;
     } catch (error) {
       console.error('Error handling file upload:', error);

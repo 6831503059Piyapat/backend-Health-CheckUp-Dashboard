@@ -28,7 +28,6 @@ export class AuthService {
     }
 
     if (!user) return null;
-    if (!user.isVerified) throw new UnauthorizedException('Please verify your email before logging in');
     return user;
   }
 

@@ -58,24 +58,13 @@ export class UsersService {
   }
 
   async saveWithUser(data: any, userId: string) {
-    const result = await this.userModel.findByIdAndUpdate(
-      userId,
-      [
-        {
-          $set: {
-            Data: {
-              $cond: {
-                if: { $isArray: '$Data' },
-                then: { $concatArrays: ['$Data', [data]] },
-                else: [data],
-              },
-            },
-          },
-        },
-      ],
-      { new: true, updatePipeline: true },
-    ).lean().exec();
-    return result;
+    return await this.userModel.findByIdAndUpdate(
+    userId,
+    { 
+      $push: { Data: data }
+    },
+    { new: true }
+  ).lean().exec();
   }
 
   async saveVerificationCode(userId: string, code: string) {

@@ -24,6 +24,7 @@ export interface HealthRecord {
   platelets: number;
   spo2: number;
   heartRate: number;
+  suggestion: string;
 }
 
 @Schema({ timestamps: true })
