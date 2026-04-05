@@ -15,23 +15,35 @@ export class UsersService {
     // Check Email that already use?
     const existingUserEmail = await this.userModel.findOne({ email });
     if (existingUserEmail) {
-      throw new ConflictException('Email already exists');
+      // If email exists, replace/update the existing user with new data.
+      if (name) {
+        const existingUserName = await this.userModel.findOne({ name });
+        if (existingUserName && existingUserName._id.toString() !== existingUserEmail._id.toString()) {
+          throw new ConflictException('Name already used');
+        }
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      if (typeof name === 'string') existingUserEmail.name = name;
+      existingUserEmail.password = hashedPassword;
+      return existingUserEmail.save();
     }
+
     if (name) {
       const existingUserName = await this.userModel.findOne({ name });
       if (existingUserName) {
         throw new ConflictException('Name already used');
       }
     }
+
     // Hash password before save (Salt 10 rounds)
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     const newUser = new this.userModel({
       email,
       password: hashedPassword,
       name,
     });
-    
+
     return newUser.save();
   }
 

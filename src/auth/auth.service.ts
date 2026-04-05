@@ -12,9 +12,8 @@ export class AuthService {
     private jwtService: JwtService,
     private mailService: MailService,
   ) {}
-
   // 1. ตรวจสอบ User & Password
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUserLogin(email: string, pass: string): Promise<any> {
     const userByEmail = await this.usersService.findOneByEmail(email);
     const userByname = await this.usersService.findOneByName(email);
 
@@ -28,8 +27,28 @@ export class AuthService {
     }
 
     if (!user) return null;
-    return user;
+    if(!user.isVerified) throw new UnauthorizedException('Email not verified');
+      return user;
   }
+  
+   async validateUserRegister(email: string, pass: string): Promise<any> {
+    const userByEmail = await this.usersService.findOneByEmail(email);
+    const userByname = await this.usersService.findOneByName(email);
+
+    let user: any = null;
+    if (userByEmail && (await bcrypt.compare(pass, userByEmail.password))) {
+      const { password, ...result } = userByEmail.toObject();
+      user = result;
+    } else if (userByname && (await bcrypt.compare(pass, userByname.password))) {
+      const { password, ...result } = userByname.toObject();
+      user = result;
+    }
+    if(user.isVerified) throw new UnauthorizedException('Email not verified');
+
+    if (!user) return null;
+      return user;
+  }
+  
 
   // 2. สร้าง Token หลังจาก Login ผ่าน
   async login(user: any) {
@@ -50,7 +69,15 @@ export class AuthService {
       email: user.email || '',
       password: user.password || '' ,
     });
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const generateRandomString = (length: number) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+    const code = generateRandomString(6);
     await this.usersService.saveVerificationCode(String(SaveRegis._id), code);
     await this.mailService.sendVerificationEmail(SaveRegis.email, SaveRegis.name, code);
     return SaveRegis;
@@ -66,8 +93,15 @@ export class AuthService {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) throw new BadRequestException('No account found with that email');
     if (user.isVerified) throw new BadRequestException('Email is already verified');
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+   const generateRandomString = (length: number) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+    const code = generateRandomString(6);
     await this.usersService.saveVerificationCode(String(user._id), code);
     await this.mailService.sendVerificationEmail(user.email, user.name, code);
     return { message: 'Verification code resent' };

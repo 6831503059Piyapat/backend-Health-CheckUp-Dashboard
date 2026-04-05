@@ -11,7 +11,9 @@ export class MailService {
   }
 
   async sendVerificationEmail(to: string, name: string, code: string) {
+    
     await this.resend.emails.send({
+      
       from: this.configService.get<string>('RESEND_FROM_EMAIL') ?? 'onboarding@resend.dev',
       to,
       subject: 'Your verification code',
