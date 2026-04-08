@@ -20,7 +20,7 @@ export class UsersController {
   @Get('me')
   async getMe(@Request() req: AuthRequest) {
     const user = await this.usersService.findById(req.user.userId);
-    return { name: user.name, Data: user.Data ?? [] };
+    return { name: user.name, Data: user.Data ?? [],email:user.email };
   }
 
   @UseGuards(JwtAuthGuard)
