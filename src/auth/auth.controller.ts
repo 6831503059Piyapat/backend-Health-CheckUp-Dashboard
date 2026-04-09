@@ -24,7 +24,8 @@ export class AuthController {
   
   @Post('check-register')
   async checkRegister(@Body() checkDto: any) {
-    const user = await this.authService.validateUserRegister(checkDto.email, checkDto.password);
+    const user = await this.authService.validateUserRegister(
+      checkDto.email, checkDto.password,checkDto.name);
     if(user && !user.isVerified){
       return { canRegister:true}; 
      }

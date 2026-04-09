@@ -12,7 +12,6 @@ export class AuthService {
     private jwtService: JwtService,
     private mailService: MailService,
   ) {}
-  // 1. ตรวจสอบ User & Password
   async validateUserLogin(email: string, pass: string): Promise<any> {
     const userByEmail = await this.usersService.findOneByEmail(email);
     const userByname = await this.usersService.findOneByName(email);
@@ -31,7 +30,7 @@ export class AuthService {
       return user;
   }
   
-   async validateUserRegister(email: string, pass: string): Promise<any> {
+   async validateUserRegister(name: string,email: string, pass: string): Promise<any> {
     const userByEmail = await this.usersService.findOneByEmail(email);
     const userByname = await this.usersService.findOneByName(email);
 
@@ -43,9 +42,12 @@ export class AuthService {
       const { password, ...result } = userByname.toObject();
       user = result;
     }
+    if (!user) {
+      return await this.usersService.create({email:email,name:name,password:pass});
+    };
     if(user.isVerified) throw new UnauthorizedException('Email not verified');
 
-    if (!user) return null;
+    
       return user;
   }
   
