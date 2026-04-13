@@ -30,25 +30,18 @@ export class AuthService {
       return user;
   }
   
-   async validateUserRegister(name: string,email: string, pass: string): Promise<any> {
+  async validateUserRegister(email: string, pass: string, name: string): Promise<any> {
+    // Check if a user exists with the given email or username.
     const userByEmail = await this.usersService.findOneByEmail(email);
-    const userByname = await this.usersService.findOneByName(email);
+    const userByName = await this.usersService.findOneByName(name);
 
-    let user: any = null;
-    if (userByEmail && (await bcrypt.compare(pass, userByEmail.password))) {
-      const { password, ...result } = userByEmail.toObject();
-      user = result;
-    } else if (userByname && (await bcrypt.compare(pass, userByname.password))) {
-      const { password, ...result } = userByname.toObject();
-      user = result;
-    }
-    if (!user) {
-      return await this.usersService.create({email:email,name:name,password:pass});
-    };
-    if(user.isVerified) throw new UnauthorizedException('Email not verified');
+    const existing = userByEmail ?? userByName;
+    if (!existing) return null;
 
-    
-      return user;
+    // Sanitize user object before returning (remove password)
+    const sanitized = existing && (existing.toObject ? existing.toObject() : { ...existing });
+    if (sanitized && sanitized.password) delete sanitized.password;
+    return sanitized;
   }
   
 

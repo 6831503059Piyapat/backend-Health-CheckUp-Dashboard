@@ -26,12 +26,16 @@ export class AuthController {
   async checkRegister(@Body() checkDto: any) {
     const user = await this.authService.validateUserRegister(
       checkDto.email, checkDto.password,checkDto.name);
-    if(user && !user.isVerified){
-      return { canRegister:true}; 
-     }
+    
     if (!user) {
       return { canRegister: true };
     }
+    if(user && !user.isVerified){
+      return { canRegister:true}; 
+     }
+     if(user && user.isVerified){
+      throw new UnauthorizedException('User already exists');
+     }
 
  if(user){
     throw new UnauthorizedException('User already exists');
