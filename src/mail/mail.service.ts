@@ -29,6 +29,23 @@ export class MailService {
     });
   }
 
+  async sendResetPasswordEmail(to: string, name: string, code: string) {
+    await this.resend.emails.send({
+      from: this.configService.get<string>('RESEND_FROM_EMAIL') ?? 'onboarding@resend.dev',
+      to,
+      subject: 'Your password reset code',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+          <h2 style="color:#1d4ed8;">Health CheckUp Dashboard</h2>
+          <p>Hi <strong>${name || 'there'}</strong>,</p>
+          <p>We received a request to reset your password. Use the code below to proceed. It expires in <strong>10 minutes</strong>.</p>
+          <div style="font-size:36px;font-weight:bold;letter-spacing:8px;text-align:center;padding:24px 0;color:#1d4ed8;">${code}</div>
+          <p style="color:#6b7280;font-size:14px;">If you did not request a password reset, please ignore this email.</p>
+        </div>
+      `,
+    });
+  }
+
   async sendWelcomeEmail(to: string, name: string) {
     await this.resend.emails.send({
       from: this.configService.get<string>('RESEND_FROM_EMAIL') ?? 'onboarding@resend.dev',

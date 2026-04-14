@@ -47,6 +47,12 @@ export class User extends Document {
   @Prop()
   verificationCodeExpiry: Date;
 
+  @Prop()
+  resetPasswordCode: string;
+
+  @Prop()
+  resetPasswordCodeExpiry: Date;
+
   @Prop({ type: [Object], default: [] })
   Data: HealthRecord[];
 }

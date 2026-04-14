@@ -84,6 +84,30 @@ export class AuthService {
     return { message: 'Email verified successfully' };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) throw new BadRequestException('No account found with that email');
+
+    const generateRandomString = (length: number) => {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return result;
+    };
+    const code = generateRandomString(6);
+    await this.usersService.saveResetPasswordCode(String(user._id), code);
+    await this.mailService.sendResetPasswordEmail(user.email, user.name, code);
+    return { message: 'Password reset code sent' };
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    const ok = await this.usersService.resetPassword(email, code, newPassword);
+    if (!ok) throw new BadRequestException('Invalid or expired reset code');
+    return { message: 'Password reset successfully' };
+  }
+
   async resendCode(email: string) {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) throw new BadRequestException('No account found with that email');

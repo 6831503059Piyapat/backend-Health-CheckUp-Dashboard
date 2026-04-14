@@ -99,6 +99,27 @@ export class UsersService {
     return true;
   }
 
+  async saveResetPasswordCode(userId: string, code: string) {
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await this.userModel.findByIdAndUpdate(userId, {
+      resetPasswordCode: code,
+      resetPasswordCodeExpiry: expiry,
+    });
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ email });
+    if (!user || user.resetPasswordCode !== code) return false;
+    if (!user.resetPasswordCodeExpiry || user.resetPasswordCodeExpiry < new Date()) return false;
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userModel.findByIdAndUpdate(user._id, {
+      password: hashedPassword,
+      $unset: { resetPasswordCode: '', resetPasswordCodeExpiry: '' },
+    });
+    return true;
+  }
+
   async updateProfile(userId: string, updates: { name?: string; email?: string }) {
     if (updates.email) {
       const existing = await this.userModel.findOne({ email: updates.email });

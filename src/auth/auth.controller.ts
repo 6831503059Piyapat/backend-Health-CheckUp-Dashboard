@@ -51,4 +51,14 @@ export class AuthController {
   async resendCode(@Body() body: { email: string}) {
     return this.authService.resendCode(body.email);
   }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { email: string; code: string; password: string }) {
+    return this.authService.resetPassword(body.email, body.code, body.password);
+  }
 }
