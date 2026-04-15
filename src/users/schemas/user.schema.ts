@@ -49,6 +49,11 @@ export class User extends Document {
 
   @Prop({ type: [Object], default: [] })
   Data: HealthRecord[];
+
+  @Prop({type:[Object],default:[]})
+  Calendar:[];
+
+  
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

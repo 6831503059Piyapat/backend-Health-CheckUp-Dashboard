@@ -2,11 +2,14 @@ import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
+import {Calendar,CalendarDocument} from './schemas/calendar.schema'
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+  @InjectModel(User.name) private userModel: Model<User>,
+  @InjectModel(Calendar.name) private calendarModel:Model<CalendarDocument>) {}
 
   // Register
   async create(createUserDto: RegisterDto): Promise<User> {
@@ -58,7 +61,6 @@ export class UsersService {
   }
  async findByIdGraph(id: string): Promise<User | null> {
     const data = this.userModel.findById(id).select('-password').exec();
-    console.log(data);
     return data;
   }
   async findOneByName(name:string):Promise<User|null>{
@@ -67,6 +69,11 @@ export class UsersService {
   async getHealthData(userId: string) {
     const user = await this.userModel.findById(userId).select('Data').lean().exec();
     return user?.Data ?? null;
+  }
+
+  async getCalendar(userId:string){
+    const user = await this.userModel.findById(userId).select('Calendar').lean().exec();
+    return user?.Calendar ?? null;
   }
 
   async saveWithUser(data: any, userId: string) {
@@ -78,6 +85,15 @@ export class UsersService {
     { new: true }
   ).lean().exec();
   }
+  async saveCalendarWithUser(data: any, userId: string) {
+    return await this.userModel.findByIdAndUpdate(
+    userId,
+    { 
+      $push: { Calendar: data }
+    },
+    { new: true }
+  ).lean().exec();
+  }
 
   async saveVerificationCode(userId: string, code: string) {
     const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -85,6 +101,24 @@ export class UsersService {
       verificationCode: code,
       verificationCodeExpiry: expiry,
     });
+  }
+
+async delete(eventId:string, userId: string): Promise<any> {
+  
+    const result = await this.userModel.findOneAndUpdate(
+    { _id: userId }, 
+    { 
+      $pull: { 
+        Calendar: { _id: eventId } 
+      } 
+    },
+    { new: true } 
+  ).exec();
+    if (!result) {
+      throw new ConflictException(`Event with ID not found`);
+    }
+
+    return { message: 'Deleted successfully' };
   }
 
   async verifyCode(email: string, code: string): Promise<boolean> {
