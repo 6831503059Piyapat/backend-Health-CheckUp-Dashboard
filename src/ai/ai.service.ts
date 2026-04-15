@@ -120,6 +120,18 @@ export class AiService implements OnModuleInit {
     }
   }
 
+  async predictTrend(prompt: string): Promise<any> {
+    try {
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = this.cleanResponse(response.text());
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('Predict trend error:', error);
+      throw new Error('Failed to generate health prediction');
+    }
+  }
+
   private cleanResponse(text: string): string {
     if (text.includes('```')) {
       return text.replace(/```json|```/g, '').trim();

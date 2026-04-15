@@ -29,4 +29,10 @@ export class AiController {
     const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
     return this.aiService.generateSuggest(prompt, parsedData);
   }
+
+  @Post('predict')
+  async predictHealthTrend(@Body('prompt') prompt: string) {
+    if (!prompt) throw new BadRequestException('prompt is required');
+    return this.aiService.predictTrend(prompt);
+  }
 }
