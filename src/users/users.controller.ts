@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Patch, Body, Get,Delete, UseGuards, Request,Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request as ExpressRequest } from 'express';
@@ -35,9 +35,28 @@ export class UsersController {
     return this.usersService.getHealthData(req.user.userId);
   }
 
+@UseGuards(JwtAuthGuard) 
+  @Delete('delete-calendar')
+  async remove(@Body() body:any,@Request() req :AuthRequest) {
+    return await this.usersService.delete(body.eventId,req.user.userId);
+  }
+
+   @UseGuards(JwtAuthGuard)
+  @Get('me/Calendar')
+  async getCalendar(@Request() req: AuthRequest) {
+    return this.usersService.getCalendar(req.user.userId);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('create-post')
   async createPost(@Body() body: any, @Request() req: AuthRequest) {
     return this.usersService.saveWithUser(body, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)  
+  @Post('create-calendar')
+  
+  async createCalendar(@Body() body:{_id:string,title:string,time:string,date:string},@Request() req:AuthRequest){
+    return this.usersService.saveCalendarWithUser({_id:body._id,title:body.title,time:body.time,date:body.date,userId:req.user.userId},req.user.userId);
   }
 }
