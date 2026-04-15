@@ -5,10 +5,10 @@ import { parseISO,format } from 'date-fns';
 export class PdfService {
   async generatePdf(data: any): Promise<Buffer> {
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-
+  executablePath: "/opt/render/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome",
+  headless: true,
+  args: ["--no-sandbox"],
+});
     const page = await browser.newPage();
 function formatDate(d: any) {
       if (!d) return 'N/A';
