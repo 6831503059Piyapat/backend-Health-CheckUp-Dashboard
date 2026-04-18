@@ -8,7 +8,8 @@ import {Calendar,CalendarSchema} from './schemas/calendar.schema';
 @Module({
   imports: [
     // Connect Schema with Collection in MongoDB
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema },{name:Calendar.name,schema:CalendarSchema}]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema },
+      {name:Calendar.name,schema:CalendarSchema}]),
   ],
   controllers: [UsersController],
   providers: [UsersService],
