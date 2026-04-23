@@ -1,10 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import OpenAI from 'openai';
 import { UsersService } from '../users/users.service';
-interface Props{
 
-}
 const EXTRACTION_PROMPT = `
 You are a medical data extraction assistant.
 Extract health checkup data from the provided document or image and return a single raw JSON object with exactly this structure.
@@ -38,8 +36,8 @@ Return ONLY the raw JSON — no markdown, no code blocks, no explanation.
 
 @Injectable()
 export class AiService implements OnModuleInit {
-  private genAI: GoogleGenerativeAI | any;
-  private model: GenerativeModel | any;
+  private openai: OpenAI;
+  private model: string;
 
   constructor(
     private configService: ConfigService,
@@ -47,9 +45,9 @@ export class AiService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY')!;
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY')!;
+    this.model = this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
+    this.openai = new OpenAI({ apiKey });
   }
 
   async handleFileUpload(file: Express.Multer.File, userId: string, prompt?: string): Promise<any> {
@@ -62,19 +60,28 @@ export class AiService implements OnModuleInit {
 
       let raw: string;
       if (isImage) {
-        const imagePart = {
-          inlineData: {
-            data: file.buffer.toString('base64'),
-            mimeType: file.mimetype,
-          },
-        };
-        const result = await this.model.generateContent([finalPrompt, imagePart]);
-        raw = result.response.text();
+        const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        const completion = await this.openai.chat.completions.create({
+          model: this.model,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: finalPrompt },
+                { type: 'image_url', image_url: { url: dataUrl } },
+              ],
+            },
+          ],
+        });
+        raw = completion.choices[0]?.message?.content ?? '';
       } else {
         const fileContent = file.buffer.toString('utf-8');
         const combined = `${finalPrompt}\n\nFile Content:\n${fileContent}`;
-        const result = await this.model.generateContent(combined);
-        raw = result.response.text();
+        const completion = await this.openai.chat.completions.create({
+          model: this.model,
+          messages: [{ role: 'user', content: combined }],
+        });
+        raw = completion.choices[0]?.message?.content ?? '';
       }
 
       const cleaned = this.cleanResponse(raw);
@@ -96,35 +103,45 @@ export class AiService implements OnModuleInit {
   async generateSuggest(prompt: string, ObjData: any): Promise<any> {
     try {
       const dataString = JSON.stringify(ObjData, null, 2);
-      const result = await this.model.generateContent([prompt, dataString]);
-      const response = await result.response;
-      return this.cleanResponse(response.text());
+      const completion = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          { role: 'user', content: `${prompt}\n\n${dataString}` },
+        ],
+      });
+      const text = completion.choices[0]?.message?.content ?? '';
+      return this.cleanResponse(text);
     } catch (error) {
-      console.error('Gemini suggest error:', error);
+      console.error('OpenAI suggest error:', error);
       throw new Error('Failed to generate suggestion');
     }
   }
 
   async generateText(prompt: string): Promise<string> {
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      let text = response.text();
+      const completion = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      let text = completion.choices[0]?.message?.content ?? '';
       if (text.includes('```')) {
         text = text.replace(/```json|```/g, '').trim();
       }
       return text;
     } catch (error) {
-      console.error('Gemini Error:', error);
-      throw new Error('Failed to generate content from Gemini');
+      console.error('OpenAI Error:', error);
+      throw new Error('Failed to generate content from OpenAI');
     }
   }
 
   async predictTrend(prompt: string): Promise<any> {
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = this.cleanResponse(response.text());
+      const completion = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const raw = completion.choices[0]?.message?.content ?? '';
+      const text = this.cleanResponse(raw);
       return JSON.parse(text);
     } catch (error) {
       console.error('Predict trend error:', error);

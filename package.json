@@ -21,7 +21,6 @@
     "postinstall": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@nestjs/common": "^11.1.18",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.18",
@@ -38,6 +37,7 @@
     "dotenv": "^17.3.1",
     "mongodb": "^7.1.0",
     "mongoose": "^9.3.1",
+    "openai": "^6.34.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "puppeteer": "^24.40.0",
